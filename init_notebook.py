@@ -60,7 +60,7 @@ if role == 'Master':
         zip_path = 'gs://hail-common/' + hail_zip
 
     # make directory for Hail and Jupyter notebook related files
-    os.mkdir('/home/hail/')
+    call(['mkdir', '-p', '/home/hail/'])
     os.chmod('/home/hail/', 0777)
 
     # copy Hail jar and zip to local directory on master node
@@ -92,7 +92,7 @@ if role == 'Master':
         json.dump(kernel, f)
 
     # make directory for custom Spark conf
-    os.mkdir('/home/hail/conf')
+    call(['mkdir', '-p', '/home/hail/conf'])
 
     # copy conf files to custom directory
     call(['cp', '/etc/spark/conf/spark-defaults.conf', '/home/hail/conf/spark-defaults.conf'])
