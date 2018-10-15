@@ -3,7 +3,7 @@ import json
 import os
 import subprocess as sp
 import sys
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 
 if sys.version_info >= (3,0):
     # Python 3 check_output returns a byte string
@@ -131,6 +131,14 @@ if role == 'Master':
         'spark.driver.extraClassPath=/home/hail/hail.jar',
         'spark.executor.extraClassPath=./hail.jar'
     ]
+
+    try:
+        upload_email = get_metadata('UPLOAD_EMAIL')
+    except CalledProcessError:
+        upload_email = None
+    if upload_email:
+        conf_to_set.append(f'hail.uploadEmail={upload_email}')
+        conf_to_set.append('hail.enablePipelineUpload=true')
 
     print('setting spark-defaults.conf')
 

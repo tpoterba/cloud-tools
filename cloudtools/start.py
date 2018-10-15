@@ -121,6 +121,7 @@ def init_parser(parser):
     parser.add_argument('--init_timeout', default='20m', help='Flag to specify a timeout period for the initialization action')
     parser.add_argument('--vep', action='store_true', help='Configure the cluster to run VEP.')
     parser.add_argument('--dry-run', action='store_true', help="Print gcloud dataproc command, but don't run it.")
+    parser.add_argument('--upload', action='store_true', help='Configure the started cluster to upload (potentially sensitive!) debug information to the Hail Team')
 
     # custom config file
     parser.add_argument('--config-file', help='Pass in a custom json file to load configurations.')
@@ -204,6 +205,17 @@ def main(args):
             base = []
         packages = '|'.join(base + args.packages.split(','))
         conf.extend_flag('metadata', {'PKGS': packages})
+
+    if args.upload:
+        gcloud_email = [x.strip() for x in check_output(['gcloud',
+                                                         'auth',
+                                                         'list',
+                                                         '--filter=status:ACTIVE',
+                                                         '--format=value(account)']
+                                                        ).decode('utf-8').split('\n')]
+        if len(gcloud_email) != 1:
+            raise RuntimeError(f'Expected 1 active authenticated gcloud account, found {len(gcloud_email)}: {gcloud_email}')
+        conf.extend_flag('metadata', {'UPLOAD_EMAIL': gcloud_email[0]})
 
     conf.vars['driver_memory'] = str(int(machine_mem[args.master_machine_type] * args.master_memory_fraction))
     conf.flags['master-machine-type'] = args.master_machine_type
